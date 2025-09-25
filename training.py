@@ -12,7 +12,7 @@ val_dir = "E:/8semproject/dataset_split/val"
 
 # Hyperparameters
 batch_size = 32
-epochs = 30
+epochs = 10
 learning_rate = 0.001
 image_size = 128
 
