@@ -1,0 +1,11 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Dataset / large files
+*.pth
+dataset_split/
+
+# IDE / system files
+.vscode/
+.DS_Store
