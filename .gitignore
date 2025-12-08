@@ -9,3 +9,7 @@ dataset_split/
 # IDE / system files
 .vscode/
 .DS_Store
+
+preprocessed
+cleaned
+fullcleaned
