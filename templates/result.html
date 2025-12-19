@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🌿 Prediction Result</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #c2e9fb, #a1c4fd);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 450px;
+    }
+
+    img.result-img {
+      width: 100%;
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+
+    .prediction-box {
+      background: #f0fff0;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .prediction-box h2 {
+      color: #2e8b57;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .desc-box {
+      background: #fff7e6;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      text-align: left;
+    }
+
+    .desc-box h3 {
+      color: #e67e22;
+      margin-bottom: 10px;
+    }
+
+    .back-btn {
+      text-decoration: none;
+      background: linear-gradient(90deg, #4CAF50, #81C784);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+
+    .back-btn:hover {
+      background: linear-gradient(90deg, #388E3C, #66BB6A);
+    }
+  </style>
+</head>
+<body>
+  <div class="container result">
+
+    <h1>🌿 Prediction Result</h1>
+
+    <img src="{{ image_path }}" alt="Uploaded Image" class="result-img">
+
+    <div class="prediction-box">
+      <h2>{{ prediction }}</h2>
+      <p>Confidence: {{ '%.2f'|format(confidence) }}%</p>
+    </div>
+
+   
+    <div class="desc-box">
+      <h3> prediction:</h3>
+      <p>{{ description }}</p>
+    </div>
+   
+
+    <a href="/" class="back-btn">Upload Another Image</a>
+  </div>
+</body>
+</html>
