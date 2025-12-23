@@ -49,3 +49,5 @@ class CustomCNN(nn.Module):
         x = self.pool(x)
         x = self.fc(x)
         return x
+
+print("hello")
