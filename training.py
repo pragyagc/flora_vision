@@ -25,7 +25,7 @@ learning_rate = 0.001
 image_size = 128
 patience = 5
 
-print("hello")
+print("training started")
 
 # ----------------- DEVICE -----------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

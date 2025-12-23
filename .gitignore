@@ -13,3 +13,7 @@ dataset_split/
 preprocessed
 cleaned
 fullcleaned
+__pycache__
+best_model.pth
+checkpoint.pth
+static
