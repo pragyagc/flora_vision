@@ -15,8 +15,8 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # ----------------- PATHS -----------------
-train_dir = "E:/FINAL_PROJECT/dataset_split/train"
-val_dir = "E:/FINAL_PROJECT/dataset_split/val"
+train_dir = "E:/FLORA_VISION/dataset_split/train"
+val_dir = "E:/FLORA_VISION/dataset_split/val"
 
 # ----------------- HYPERPARAMETERS -----------------
 batch_size = 32
@@ -25,7 +25,7 @@ learning_rate = 0.001
 image_size = 128
 patience = 5
 
-print("training started")
+print("hello")
 
 # ----------------- DEVICE -----------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
