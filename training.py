@@ -8,36 +8,51 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 from torchvision import datasets, transforms
 from model import CustomCNN
 import os
+import json
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
-import pillow_avif
+#importpillow_avif
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# ----------------- PATHS -----------------
-train_dir = "E:/FLORA_VISION/dataset_split/train"
-val_dir = "E:/FLORA_VISION/dataset_split/val"
+# PATHS for training and testing
+train_dir = "E:/FINAL_PROJECT/dataset_split_new/train"
+val_dir = "E:/FINAL_PROJECT/dataset_split_new/val"
 
-# ----------------- HYPERPARAMETERS -----------------
+#  HYPERPARAMETERS 
 batch_size = 32
-epochs = 30
+epochs = 25
 learning_rate = 0.001
 image_size = 128
 patience = 5
 
 print("hello")
 
-# ----------------- DEVICE -----------------
+# DEVICE
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
-# ----------------- TRANSFORMS -----------------
+# TRANSFORMS
+
+class AddGaussianNoise(object):
+    def __init__(self, mean=0., std=0.05):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, tensor):
+        return tensor + torch.randn(tensor.size()) * self.std + self.mean
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
+
+
 train_transform = transforms.Compose([
     transforms.Resize((image_size, image_size)),
     transforms.RandomHorizontalFlip(),
     transforms.RandomRotation(15),
     transforms.ColorJitter(0.2, 0.2, 0.2),
     transforms.ToTensor(),
+    AddGaussianNoise(0., 0.05), 
     transforms.Normalize([0.5]*3, [0.5]*3)
 ])
 
@@ -47,18 +62,26 @@ val_transform = transforms.Compose([
     transforms.Normalize([0.5]*3, [0.5]*3)
 ])
 
-# ----------------- SAFE LOADER -----------------
+
+
+# SAFE LOADER
 def safe_loader(path):
     try:
         with Image.open(path) as img:
             return img.convert("RGB")
     except Exception as e:
-        print(f"⚠ Skipping corrupted image: {path} ({e})")
+        print(f"Skipping corrupted image: {path} ({e})")
         return None
 
-# ----------------- DATASETS -----------------
+
+
+# DATASETS 
 train_data = datasets.ImageFolder(train_dir, transform=train_transform, loader=safe_loader)
 val_data = datasets.ImageFolder(val_dir, transform=val_transform, loader=safe_loader)
+
+# SAVE CLASS MAPPING 
+torch.save(train_data.class_to_idx, "class_to_idx.pth")
+print("Saved class_to_idx.pth")
 
 # Handle class imbalance with WeightedRandomSampler
 targets = [label for _, label in train_data.samples]
@@ -73,21 +96,21 @@ val_loader = DataLoader(val_data, batch_size=batch_size)
 classes = train_data.classes
 print("Classes:", classes)
 
-# ----------------- MODEL -----------------
+# MODEL
 model = CustomCNN(num_classes=len(classes)).to(device)
 
-# ----------------- OPTIMIZER & LOSS -----------------
+# OPTIMIZER & LOSS 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-4)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
 
-# ----------------- RESUME TRAINING IF CHECKPOINT EXISTS -----------------
+# RESUME TRAINING IF CHECKPOINT EXISTS
 start_epoch = 0
 best_val_acc = 0.0
 checkpoint_path = "checkpoint.pth"
 
 if os.path.exists(checkpoint_path):
-    print("🔄 Found checkpoint! Resuming training...")
+    print(" Found checkpoint! Resuming training...")
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
@@ -96,10 +119,14 @@ if os.path.exists(checkpoint_path):
     start_epoch = checkpoint["epoch"] + 1
     print(f"Resumed from epoch {start_epoch} with best val acc {best_val_acc:.2f}%")
 else:
-    print("🆕 Starting fresh training...")
+    print(" Starting fresh training...")
 
-# ----------------- TRAINING LOOP -----------------
+#  TRAINING LOOP 
 patience_counter = 0
+train_losses = []
+val_losses = []
+train_accuracies = []
+val_accuracies = []
 
 for epoch in range(start_epoch, epochs):
     model.train()
@@ -121,9 +148,12 @@ for epoch in range(start_epoch, epochs):
         correct += (predicted == labels).sum().item()
 
     train_acc = 100 * correct / total
+    train_losses.append(running_loss / len(train_loader))
+    train_accuracies.append(train_acc)
+
     scheduler.step()
 
-    # ----------------- VALIDATION -----------------
+    # VALIDATION
     model.eval()
     val_loss, val_correct, val_total = 0, 0, 0
 
@@ -139,15 +169,31 @@ for epoch in range(start_epoch, epochs):
             val_correct += (predicted == labels).sum().item()
 
     val_acc = 100 * val_correct / val_total
+    val_losses.append(val_loss / len(val_loader))
+    val_accuracies.append(val_acc)
 
-    # ----------------- PRINT RESULTS -----------------
+
+    # PRINT RESULTS
     print(f"Epoch {epoch+1}/{epochs}")
     print(f"Train Loss: {running_loss/len(train_loader):.4f} | "
           f"Train Acc: {train_acc:.2f}% | "
           f"Val Loss: {val_loss/len(val_loader):.4f} | "
           f"Val Acc: {val_acc:.2f}%", flush=True)
 
-    # ----------------- SAVE CHECKPOINT -----------------
+    #  BEST MODEL 
+    if val_acc > best_val_acc:
+        best_val_acc = val_acc
+        patience_counter = 0
+        torch.save(model.state_dict(), "best_model.pth")
+        print("Saved best model.\n", flush=True)
+    else:
+        patience_counter += 1
+        print("", flush=True)
+        if patience_counter >= patience:
+            print("Early stopping: no improvement.")
+            break
+
+    #SAVE CHECKPOINT
     torch.save({
         "epoch": epoch,
         "model_state_dict": model.state_dict(),
@@ -155,20 +201,19 @@ for epoch in range(start_epoch, epochs):
         "scheduler_state_dict": scheduler.state_dict(),
         "best_val_acc": best_val_acc
     }, checkpoint_path)
+    print("best value accuracy", best_val_acc)
 
-    # ----------------- BEST MODEL -----------------
-    if val_acc > best_val_acc:
-        best_val_acc = val_acc
-        patience_counter = 0
-        torch.save(model.state_dict(), "best_model.pth")
-        if val_acc > best_val_acc and train_acc<val_acc:
-         print("Saved best model.\n", flush=True)
+    
 
-    else:
-        patience_counter += 1
-        print("", flush=True)
-        if patience_counter >= patience:
-            print("Early stopping: no improvement.")
-            break
+    history = {
+    "train_loss": train_losses,
+    "val_loss": val_losses,
+    "train_acc": train_accuracies,
+    "val_acc": val_accuracies
+}
+
+    with open("training_history.json", "w") as f:
+     json.dump(history, f)
+
 
 print("Training completed. Best Validation Accuracy:", best_val_acc)

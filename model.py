@@ -29,11 +29,41 @@ class CustomCNN(nn.Module):
         self.pool = nn.AdaptiveAvgPool2d((1,1))
 
         self.fc = nn.Sequential(
+        
             nn.Flatten(),
-            nn.Linear(256, 256),
-            nn.LeakyReLU(0.1, inplace=True),
+
+
+            nn.Linear(256, 512), # FC 1
+            nn.LeakyReLU(0.1),
             nn.Dropout(0.3),
-            nn.Linear(256, num_classes)
+
+
+            nn.Linear(512, 512), # FC 2
+            nn.LeakyReLU(0.1),
+            nn.Dropout(0.3),
+
+
+            nn.Linear(512, 256), # FC 3
+            nn.LeakyReLU(0.1),
+
+
+            nn.Linear(256, 256), # FC 4
+            nn.LeakyReLU(0.1),
+
+
+            nn.Linear(256, 128), # FC 5
+            nn.LeakyReLU(0.1),
+
+
+            nn.Linear(128, 128), # FC 6
+            nn.LeakyReLU(0.1),
+
+
+            nn.Linear(128, 64), # FC 7
+            nn.LeakyReLU(0.1),
+
+
+            nn.Linear(64, num_classes) # FC 8
         )
 
         # init
@@ -49,5 +79,3 @@ class CustomCNN(nn.Module):
         x = self.pool(x)
         x = self.fc(x)
         return x
-
-print("hello")

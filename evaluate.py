@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 #  CONFIG
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-test_dir = "E:/FINAL_PROJECT/dataset_split/test" 
+test_dir = "E:/FINAL_PROJECT/dataset_split_new/test" 
 batch_size = 32
 image_size = 128
 checkpoint_path = "best_model.pth"

@@ -3,8 +3,8 @@ import shutil
 import random
 
 # Paths
-original_dataset = "E:/FINAL_PROJECT/fullcleaned"   
-output_dataset = "E:/FINAL_PROJECT/dataset_split"
+original_dataset = "E:/FINAL_PROJECT/augmented"   #fullcleaned
+output_dataset = "E:/FINAL_PROJECT/dataset_split_new"
 
 # Delete old split dataset (Solution 3)
 if os.path.exists(output_dataset):
@@ -55,5 +55,5 @@ for class_name in os.listdir(original_dataset):
     copy_files(val_files, "val")
     copy_files(test_files, "test")
 
-    print(f"✅ {class_name}: {n_train} train, {n_val} val, {n_test} test")
+    print(f" {class_name}: {n_train} train, {n_val} val, {n_test} test")
 

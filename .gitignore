@@ -5,6 +5,8 @@ __pycache__/
 # Dataset / large files
 *.pth
 dataset_split/
+dataset_split_new/
+augmented/
 
 # IDE / system files
 .vscode/
@@ -17,3 +19,6 @@ __pycache__
 best_model.pth
 checkpoint.pth
 static
+class_to_idx.path
+
+venv/
